@@ -39,11 +39,11 @@ export function Overlay() {
           ease: 'easeOut',
           duration: 0.5,
         }}
-        className="min-h-screen bg-black bg-opacity-90 p-8"
+        className="bg-black bg-opacity-90 p-4 rounded-lg"
       >
-        <div className="max-w-4xl mx-auto grid grid-cols-2 gap-8">
+        <div className="w-full mx-auto grid grid-cols-2 gap-4">
           {Object.entries(config).map(([key, section]) => (
-            <div key={key} className="bg-white bg-opacity-10 rounded-lg p-6">
+            <div key={key} className="bg-white bg-opacity-10 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Command className="w-6 h-6 text-white" />
                 <h2 className="text-xl font-bold text-white">{section.name}</h2>
