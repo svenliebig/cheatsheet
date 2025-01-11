@@ -1,18 +1,18 @@
-import { join } from 'node:path'
 import { readFileSync } from 'node:fs'
 import type { FSWatcher } from 'node:original-fs'
-import * as toml from 'toml'
-import { type IpcMain, app } from 'electron'
+import { join } from 'node:path'
+import type { BrowserWindow, IpcMain } from 'electron'
 import { watch } from 'chokidar'
-import { Log } from '../utils/logging'
+import * as toml from 'toml'
 import type { Api } from '../types/shared'
-import { GET_CONFIG } from '../types/shared'
+import { CONFIG_UPDATEED, GET_CONFIG } from '../types/shared'
+import { Log } from '../utils/logging'
 
 let configWatcher: FSWatcher
 let config: Record<string, any> = {}
 
 export const ConfigControler = {
-  register(ipc: IpcMain) {
+  register(ipc: IpcMain, win: BrowserWindow) {
     Log.trace('ConnectionController.register')
 
     ipc.handle(GET_CONFIG, async (): ReturnType<Api['getConfig']> => {
@@ -21,7 +21,7 @@ export const ConfigControler = {
     })
 
     loadConfig()
-    watchConfig()
+    watchConfig(win)
   },
   unregister() {
     configWatcher.close()
@@ -48,7 +48,7 @@ function loadConfig() {
   }
 }
 
-function watchConfig() {
+function watchConfig(win: BrowserWindow) {
   const configPath = getPath()
   Log.info(`Path: ${configPath}`)
 
@@ -65,6 +65,7 @@ function watchConfig() {
     Log.info('config watch change')
     try {
       config = toml.parse(readFileSync(configPath, 'utf-8'))
+      win.webContents.send(CONFIG_UPDATEED, config)
     }
     catch (error) {
       Log.error('Error reading config:', error)

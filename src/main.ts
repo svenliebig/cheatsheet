@@ -51,7 +51,7 @@ function createWindow() {
 
 function registerEvents() {
   Log.trace('main.registerEvents')
-  ConfigControler.register(ipcMain)
+  ConfigControler.register(ipcMain, mainWindow)
 }
 
 function unregister() {

@@ -3,14 +3,16 @@
 
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Api } from './types/shared'
-import { GET_CONFIG } from './types/shared'
+import { CONFIG_UPDATEED, GET_CONFIG } from './types/shared'
 
 export const api: Api = {
   getConfig: async () => {
     const result = await ipcRenderer.invoke(GET_CONFIG)
     return result
   },
-  // onUpdateCounter: (callback) => ipcRenderer.on('update-counter', (_event, value) => callback(value)),
+  configUpdated: async (callback) => {
+    ipcRenderer.on(CONFIG_UPDATEED, (_event, value) => callback(value))
+  },
 }
 
 // This exposes the api object in `window.api`, in the react app.

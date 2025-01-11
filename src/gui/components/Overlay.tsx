@@ -24,6 +24,10 @@ export function Overlay() {
     getApi().getConfig().then((c) => {
       setConfig(c)
     })
+
+    getApi().configUpdated((c) => {
+      setConfig(c)
+    })
   }, [])
 
   return (
