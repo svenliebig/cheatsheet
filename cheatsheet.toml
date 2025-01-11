@@ -1,0 +1,18 @@
+[tmux]
+name = "TMux"
+shortcuts = [ 
+  { name = "create window", cmd = ["CTRL+B", "W"] },
+  { name = "split horizontally", cmd = ["CTRL+B", "\""] },
+  { name = "split horizontally 2", cmd = ["CTRL+B", "\""] },
+  { name = "split horizontally 3", cmd = ["CTRL+B", "\""] },
+  { name = "split horizontally 4", cmd = ["CTRL+B", "\""] },
+  { name = "split horizontally 5", cmd = ["CTRL+B", "\""] }
+]
+
+[nvim]
+name = "NVIM"
+shortcuts = [ 
+  { name = "jump to top", cmd = ["g", "g"] },
+  { name = "jump to bottom", cmd = ["G"] }
+]
+
