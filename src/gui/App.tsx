@@ -1,12 +1,11 @@
-// import { useLocation } from "react-router-dom";
+import { Settings } from './components/Settings'
 import { Overlay } from './components/Overlay'
 
 function App() {
-  // const location = useLocation();
+  const isSettings = window.location.hash === '#/settings'
   return (
     <div className="min-h-screen bg-transparent">
-      <Overlay />
-      {/* {location.hash === "#/overlay" ? <Overlay /> : <Settings />} */}
+      {isSettings ? <Settings /> : <Overlay />}
     </div>
   )
 }

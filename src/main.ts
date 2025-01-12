@@ -17,6 +17,7 @@ if (process.platform === 'win32') {
 
 let mainWindow: BrowserWindow
 let tray: Tray
+let settingsWindow: BrowserWindow | null = null
 
 function createWindow() {
   Log.trace('main.createWindow')
@@ -82,6 +83,12 @@ function createTray() {
       else
         mainWindow?.showInactive()
     } },
+    { label: 'Settings', type: 'normal', click: () => {
+      if (!settingsWindow)
+        createSettingsWindow()
+      else
+        settingsWindow.focus()
+    } },
     { label: 'Quit', type: 'normal', click: () => {
       app.quit()
     } },
@@ -90,6 +97,32 @@ function createTray() {
 
   // Set tooltip
   tray.setToolTip('Cheatsheet')
+}
+
+function createSettingsWindow() {
+  settingsWindow = new BrowserWindow({
+    width: 600,
+    height: 400,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  })
+
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    settingsWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}#/settings`)
+  }
+  else {
+    settingsWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
+      { hash: 'settings' },
+    )
+  }
+
+  settingsWindow.on('closed', () => {
+    settingsWindow = null
+  })
 }
 
 app.whenReady().then(() => {

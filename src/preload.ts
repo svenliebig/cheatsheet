@@ -3,7 +3,7 @@
 
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Api } from './types/shared'
-import { CONFIG_UPDATEED, GET_CONFIG } from './types/shared'
+import { CONFIG_UPDATEED, GET_CONFIG, GET_CONFIG_PATH, SET_CONFIG_PATH } from './types/shared'
 
 export const api: Api = {
   getConfig: async () => {
@@ -12,6 +12,12 @@ export const api: Api = {
   },
   configUpdated: async (callback) => {
     ipcRenderer.on(CONFIG_UPDATEED, (_event, value) => callback(value))
+  },
+  getConfigPath: async () => {
+    return await ipcRenderer.invoke(GET_CONFIG_PATH)
+  },
+  setConfigPath: async (path: string) => {
+    await ipcRenderer.invoke(SET_CONFIG_PATH, path)
   },
 }
 

@@ -1,15 +1,17 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import type { FSWatcher } from 'node:original-fs'
 import { join } from 'node:path'
 import type { BrowserWindow, IpcMain } from 'electron'
 import { watch } from 'chokidar'
 import * as toml from 'toml'
+import { getAppDirectory } from '../utils/dir'
 import type { Api } from '../types/shared'
-import { CONFIG_UPDATEED, GET_CONFIG } from '../types/shared'
+import { CONFIG_UPDATEED, GET_CONFIG, GET_CONFIG_PATH, SET_CONFIG_PATH } from '../types/shared'
 import { Log } from '../utils/logging'
 
 let configWatcher: FSWatcher
 let config: Record<string, any> = {}
+let configPath = join(__dirname, '..', '..', 'cheatsheet.toml')
 
 export const ConfigControler = {
   register(ipc: IpcMain, win: BrowserWindow) {
@@ -20,26 +22,39 @@ export const ConfigControler = {
       return config
     })
 
+    ipc.handle(GET_CONFIG_PATH, async () => {
+      return configPath
+    })
+
+    ipc.handle(SET_CONFIG_PATH, async (_event, path: string) => {
+      Log.trace(`ConfigController`, SET_CONFIG_PATH)
+      configPath = path
+      // Save the path to app directory
+      writeFileSync(join(getAppDirectory(), 'config.json'), JSON.stringify({ path }))
+      loadConfig()
+      watchConfig(win)
+      win.webContents.send(CONFIG_UPDATEED, config)
+    })
+
+    // Try to load saved path
+    try {
+      const savedConfig = JSON.parse(readFileSync(join(getAppDirectory(), 'config.json'), 'utf-8'))
+      configPath = savedConfig.path
+    }
+    catch {
+      Log.info('No saved config path found, using default')
+    }
+
     loadConfig()
     watchConfig(win)
   },
   unregister() {
-    configWatcher.close()
+    configWatcher?.close()
   },
-}
-
-function getPath() {
-  return join(
-    __dirname,
-    '..',
-    '..',
-    'cheatsheet.toml',
-  )
 }
 
 function loadConfig() {
   try {
-    const configPath = getPath()
     config = toml.parse(readFileSync(configPath, 'utf-8'))
   }
   catch (error) {
@@ -49,8 +64,7 @@ function loadConfig() {
 }
 
 function watchConfig(win: BrowserWindow) {
-  const configPath = getPath()
-  Log.info(`Path: ${configPath}`)
+  Log.info(`Watching config at: ${configPath}`)
 
   if (configWatcher) {
     configWatcher.close()
