@@ -1,6 +1,6 @@
 import path from 'node:path'
 import process from 'node:process'
-import { BrowserWindow, app, globalShortcut, ipcMain } from 'electron'
+import { BrowserWindow, Menu, Tray, app, globalShortcut, ipcMain, nativeImage } from 'electron'
 import { Log } from './utils/logging'
 import { ConfigControler } from './controller/config'
 
@@ -16,6 +16,7 @@ if (process.platform === 'win32') {
 }
 
 let mainWindow: BrowserWindow
+let tray: Tray
 
 function createWindow() {
   Log.trace('main.createWindow')
@@ -64,9 +65,41 @@ function unregister() {
   ConfigControler.unregister()
 }
 
+function createTray() {
+  const imagePath = path.join(__dirname, 'assets', 'sunTemplate.png')
+  // Create a default icon - you should replace this with your own icon file
+  const icon = nativeImage.createFromPath(imagePath)
+  icon.setTemplateImage(true)
+
+  // Create the tray
+  tray = new Tray(icon)
+
+  // Menu
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Show Cheatsheet', type: 'normal', click: () => {
+      if (mainWindow?.isVisible())
+        mainWindow.hide()
+      else
+        mainWindow?.showInactive()
+    } },
+    { label: 'Quit', type: 'normal', click: () => {
+      app.quit()
+    } },
+  ])
+  tray.setContextMenu(contextMenu)
+
+  // Set tooltip
+  tray.setToolTip('Cheatsheet')
+}
+
 app.whenReady().then(() => {
   Log.trace('main.appReady')
   createWindow()
+  createTray()
+
+  // Hide from dock (macOS only)
+  if (process.platform === 'darwin')
+    app.dock.hide()
 
   // Register for Meta (Command) key
   const ret = globalShortcut.register('Meta+Option+Z', () => {
@@ -100,6 +133,8 @@ app.on('window-all-closed', () => {
 })
 
 app.on('will-quit', () => {
+  if (tray)
+    tray.destroy()
 })
 
 app.on('activate', () => {

@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import type { ConfigEnv, UserConfig } from 'vite'
 import { defineConfig, mergeConfig } from 'vite'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { external, getBuildConfig, getBuildDefine, pluginHotRestart } from './vite.base.config'
 
 // https://vitejs.dev/config
@@ -27,7 +28,14 @@ export default defineConfig((env) => {
     optimizeDeps: {
       include: ['toml'],
     },
-    plugins: [react(), pluginHotRestart('restart')],
+    plugins: [react(), pluginHotRestart('restart'), viteStaticCopy({
+      targets: [
+        {
+          src: 'assets', // Source folder relative to the project root
+          dest: './', // Destination folder relative to the output directory
+        },
+      ],
+    })],
     define,
     resolve: {
       // Load the Node.js entry.
