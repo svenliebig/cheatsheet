@@ -22,14 +22,12 @@ let settingsWindow: BrowserWindow | null = null
 function createWindow() {
   Log.trace('main.createWindow')
 
-  // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 1000,
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    // vibrancy: 'fullscreen-ui',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,
@@ -38,22 +36,11 @@ function createWindow() {
   })
 
   mainWindow.setIgnoreMouseEvents(true)
-  // mainWindow.hide()
 
-  // and load the index.html of the app.
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    Log.info(`Using Vite dev server at ${MAIN_WINDOW_VITE_DEV_SERVER_URL}`)
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL)
-  }
-  else {
-    const html = path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
-    Log.info(`Loading production build from ${html}`)
-    mainWindow.loadFile(html)
-  }
-
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
-  registerEvents()
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL)
+    mainWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}/overlay.html`)
+  else
+    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/overlay.html`))
 }
 
 function registerEvents() {
@@ -110,15 +97,10 @@ function createSettingsWindow() {
     },
   })
 
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    settingsWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}#/settings`)
-  }
-  else {
-    settingsWindow.loadFile(
-      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
-      { hash: 'settings' },
-    )
-  }
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL)
+    settingsWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}/settings.html`)
+  else
+    settingsWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/settings.html`))
 
   settingsWindow.on('closed', () => {
     settingsWindow = null
@@ -129,6 +111,7 @@ app.whenReady().then(() => {
   Log.trace('main.appReady')
   createWindow()
   createTray()
+  registerEvents()
 
   // Hide from dock (macOS only)
   if (process.platform === 'darwin')

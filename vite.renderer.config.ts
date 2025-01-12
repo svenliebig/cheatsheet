@@ -16,6 +16,10 @@ export default defineConfig((env) => {
     build: {
       outDir: `.vite/renderer/${name}`,
       rollupOptions: {
+        input: {
+          overlay: './overlay.html',
+          settings: './settings.html',
+        },
         onwarn(warning, warn) {
           if (warning.code === 'MODULE_LEVEL_DIRECTIVE') {
             return
