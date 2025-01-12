@@ -4,10 +4,15 @@ import { BrowserWindow, app, globalShortcut, ipcMain } from 'electron'
 import { Log } from './utils/logging'
 import { ConfigControler } from './controller/config'
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-// eslint-disable-next-line ts/no-require-imports
-if (require('electron-squirrel-startup')) {
-  app.quit()
+// Only include this if you're actually using it for Windows
+if (process.platform === 'win32') {
+  try {
+    // eslint-disable-next-line ts/no-require-imports
+    require('electron-squirrel-startup')
+  }
+  catch (e) {
+    console.warn('Failed to load electron-squirrel-startup:', e)
+  }
 }
 
 let mainWindow: BrowserWindow

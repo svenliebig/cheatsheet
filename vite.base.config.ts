@@ -6,7 +6,14 @@ import pkg from './package.json'
 
 export const builtins = ['electron', ...builtinModules.map(m => [m, `node:${m}`]).flat()]
 
-export const external = [...builtins, ...Object.keys('dependencies' in pkg ? (pkg.dependencies as Record<string, unknown>) : {}), 'fsevents']
+// Modify the external array to exclude specific packages
+const dependenciesToBundle = ['toml', 'electron-squirrel-startup']
+export const external = [
+  ...builtins,
+  ...Object.keys('dependencies' in pkg ? (pkg.dependencies as Record<string, unknown>) : {})
+    .filter(dep => !dependenciesToBundle.includes(dep)),
+  'fsevents',
+]
 
 export function getBuildConfig(env: ConfigEnv<'build'>): UserConfig {
   const { root, mode, command } = env

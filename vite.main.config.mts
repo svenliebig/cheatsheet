@@ -1,7 +1,6 @@
+import react from '@vitejs/plugin-react'
 import type { ConfigEnv, UserConfig } from 'vite'
 import { defineConfig, mergeConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { external, getBuildConfig, getBuildDefine, pluginHotRestart } from './vite.base.config'
 
 // https://vitejs.dev/config
@@ -24,6 +23,9 @@ export default defineConfig((env) => {
       rollupOptions: {
         external,
       },
+    },
+    optimizeDeps: {
+      include: ['toml'],
     },
     plugins: [react(), pluginHotRestart('restart')],
     define,
