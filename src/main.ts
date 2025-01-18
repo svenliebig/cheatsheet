@@ -111,8 +111,8 @@ function createSettingsWindow() {
 app.whenReady().then(() => {
   Log.trace('main.appReady')
   createWindow()
-  createTray()
   registerEvents()
+  createTray()
 
   // Hide from dock (macOS only)
   if (process.platform === 'darwin')
@@ -127,7 +127,7 @@ app.whenReady().then(() => {
       mainWindow.hide()
     }
     else {
-      if (ConfigControler.localConfig.debug) {
+      if (ConfigControler.config.debug) {
         Log.debug('opening dev tools')
         mainWindow.webContents.openDevTools()
       }

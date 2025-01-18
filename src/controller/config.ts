@@ -1,117 +1,71 @@
-import { copyFile, copyFileSync, readFileSync, writeFileSync } from 'node:fs'
-import type { FSWatcher } from 'node:original-fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { BrowserWindow, IpcMain } from 'electron'
-import { watch } from 'chokidar'
-import * as toml from 'toml'
-import { getAssetsDirectory, getConfigurationDirectory } from '../utils/dir'
 import type { Api } from '../types/shared'
-import { CONFIG_UPDATED, GET_CONFIG, GET_CONFIG_PATH, SET_CONFIG_PATH, SET_DEBUG } from '../types/shared'
+import { CONFIG_UPDATED, GET_CONFIG, GET_CONFIG_PATH, SET_CHEATSHEET_PATH, SET_DEBUG } from '../types/shared'
+import { Cheatsheet } from '../utils/cheatsheet'
+import { getConfigurationDirectory } from '../utils/dir'
 import { Log } from '../utils/logging'
 
-let configWatcher: FSWatcher
-let config: Record<string, any> = {}
-let configPath = join(getConfigurationDirectory(), 'cheatsheet.toml')
+const configPath = join(getConfigurationDirectory(), 'config.json')
 
 export const ConfigControler = {
-  localConfig: { path: configPath, debug: false },
+  config: { path: join(getConfigurationDirectory(), 'cheatsheet.toml'), debug: false },
+  cheatsheet: {},
   register(ipc: IpcMain, win: BrowserWindow) {
     Log.trace('ConnectionController.register')
 
+    const onCheatsheetUpdateWin = onCheatsheetFileChange(win)
+
     ipc.handle(GET_CONFIG, async (): ReturnType<Api['getConfig']> => {
       Log.trace(`ConfigController.${GET_CONFIG}`)
-      Log.debug(`return configuration: ${JSON.stringify(config)}`)
-      return { ...config, debug: ConfigControler.localConfig.debug }
+      Log.debug(`return configuration: ${JSON.stringify(ConfigControler.cheatsheet)}`)
+      return { ...ConfigControler.cheatsheet }
     })
 
     ipc.handle(GET_CONFIG_PATH, async () => {
+      Log.trace(`ConfigController.${GET_CONFIG_PATH}`)
       return configPath
     })
 
-    ipc.handle(SET_CONFIG_PATH, async (_event, path: string) => {
-      Log.trace(`ConfigController.${SET_CONFIG_PATH}: ${path}`)
-      configPath = path
-      ConfigControler.localConfig.path = path
-      // Save the path to app directory
-      writeFileSync(join(getConfigurationDirectory(), 'config.json'), JSON.stringify(ConfigControler.localConfig))
-      loadConfig()
-      watchConfig(win)
-      win.webContents.send(CONFIG_UPDATED, { ...config, debug: ConfigControler.localConfig.debug })
+    ipc.handle(SET_CHEATSHEET_PATH, async (_event, path: string) => {
+      Log.trace(`ConfigController.${SET_CHEATSHEET_PATH}: ${path}`)
+
+      ConfigControler.config.path = path
+      writeFileSync(configPath, JSON.stringify(ConfigControler.config))
+
+      ConfigControler.cheatsheet = Cheatsheet.load(path)
+      Cheatsheet.watch(ConfigControler.config.path, onCheatsheetUpdateWin)
+
+      onCheatsheetUpdateWin(ConfigControler.cheatsheet)
     })
 
     ipc.handle(SET_DEBUG, async (_event, debug: boolean) => {
       Log.trace(`ConfigController.${SET_DEBUG}: ${debug}`)
-      ConfigControler.localConfig.debug = debug
-      writeFileSync(join(getConfigurationDirectory(), 'config.json'), JSON.stringify(ConfigControler.localConfig))
-      win.webContents.send(CONFIG_UPDATED, { ...config, debug: ConfigControler.localConfig.debug })
+      ConfigControler.config.debug = debug
+      writeFileSync(configPath, JSON.stringify(ConfigControler.config))
     })
 
     // Try to load saved path
     try {
-      const savedConfig = JSON.parse(readFileSync(join(getConfigurationDirectory(), 'config.json'), 'utf-8'))
-      configPath = savedConfig.path
-      ConfigControler.localConfig = savedConfig
+      ConfigControler.config = JSON.parse(readFileSync(configPath, 'utf-8'))
     }
     catch {
       Log.info('No saved config path found, using default')
     }
 
-    config = loadConfig()
-    watchConfig(win)
+    ConfigControler.cheatsheet = Cheatsheet.load(ConfigControler.config.path)
+    Cheatsheet.watch(ConfigControler.config.path, onCheatsheetUpdateWin)
+    onCheatsheetUpdateWin(ConfigControler.cheatsheet)
   },
   unregister() {
-    configWatcher?.close()
+    Cheatsheet.unwatch()
   },
 }
 
-function loadConfig() {
-  Log.trace(`loadConfig: ${configPath}`)
-
-  try {
-    return toml.parse(readFileSync(configPath, 'utf-8'))
+function onCheatsheetFileChange(win: BrowserWindow): (sheet: Record<string, any>) => void {
+  return (cheatsheet) => {
+    Log.debug(`Sending updated config: ${JSON.stringify(cheatsheet)}`)
+    win.webContents.send(CONFIG_UPDATED, { ...cheatsheet })
   }
-  catch (error) {
-    if (isENOENT(error)) {
-      const dftConfigPath = join(getAssetsDirectory(), 'cheatsheet.toml')
-      Log.info(`config file does not exist in:\n  ${configPath}\ncopying from default:\n  ${dftConfigPath}`)
-      try {
-        copyFileSync(dftConfigPath, configPath)
-      }
-      catch (error) {
-        Log.error('Error copying default config file:', error)
-      }
-    }
-    else {
-      Log.error('Error reading config:', error)
-    }
-  }
-}
-
-function watchConfig(win: BrowserWindow) {
-  Log.info(`Watching config at: ${configPath}`)
-
-  if (configWatcher) {
-    configWatcher.close()
-  }
-
-  configWatcher = watch(configPath, {
-    persistent: true,
-    ignoreInitial: true,
-  })
-
-  configWatcher.on('change', () => {
-    Log.info('config watch change')
-    try {
-      config = loadConfig()
-      Log.debug(`Sending updated config: ${JSON.stringify(config)}`)
-      win.webContents.send(CONFIG_UPDATED, { ...config })
-    }
-    catch (error) {
-      Log.error('Error reading config:', error)
-    }
-  })
-}
-
-function isENOENT(error: any) {
-  return error.code === 'ENOENT'
 }

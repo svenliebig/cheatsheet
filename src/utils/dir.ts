@@ -11,7 +11,7 @@ export function getConfigurationDirectory() {
 }
 
 export function appRoot() {
-  return join(__dirname, '..', '..')
+  return join(__dirname, '..', '..', '..')
 }
 
 export function getAssetsDirectory() {

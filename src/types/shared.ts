@@ -1,7 +1,7 @@
 export const GET_CONFIG = 'GET_CONFIG'
 export const CONFIG_UPDATED = 'CONFIG_UPDATED'
 export const GET_CONFIG_PATH = 'GET_CONFIG_PATH'
-export const SET_CONFIG_PATH = 'SET_CONFIG_PATH'
+export const SET_CHEATSHEET_PATH = 'SET_CHEATSHEET_PATH'
 export const SET_DEBUG = 'SET_DEBUG'
 
 export interface Api {
