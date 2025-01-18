@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import { resolve } from 'node:path'
-import { getAppDirectory } from '../utils/dir'
+import { getConfigurationDirectory } from '../utils/dir'
+import { ConfigControler } from '../controller/config'
 
 enum LogLevel {
   Trace = 'TRACE',
@@ -27,6 +28,10 @@ class Logger {
   }
 
   private log(level: LogLevel, message?: any, ...optionalParams: any[]) {
+    if (!ConfigControler.localConfig.debug) {
+      return
+    }
+
     const m = this.format(level, message, ...optionalParams)
     // eslint-disable-next-line no-console
     console.log(m)
@@ -40,7 +45,7 @@ class Logger {
 
   private async appendToFile(message: string) {
     try {
-      fs.appendFileSync(resolve(getAppDirectory(), 'log.txt'), `${message}\n`)
+      fs.appendFileSync(resolve(getConfigurationDirectory(), 'log.txt'), `${message}\n`)
     }
     catch (error) {
       console.error(`Failed to write to log file: ${error.message}`)

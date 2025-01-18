@@ -44,3 +44,11 @@ shortcuts = [
   { name = "Recall last Argument", cmd = ["ESC", "."] },
 ]
 
+[editor]
+name = "IDE"
+shortcuts = [ 
+  { name = "Focus on Chat", cmd = ["Cmd+L"] },
+  { name = "New Chat", cmd = ["Cmd+?"] },
+  { name = "Inline Chat", cmd = ["Cmd+I"] },
+]
+

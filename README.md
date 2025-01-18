@@ -52,3 +52,13 @@ Would create a cheatsheet like this:
 
 - Node +20
 - Mac
+
+## Installation
+
+```bash
+git clone https://github.com/svenliebig/cheatsheet.git
+cd cheatsheet
+npm run make
+```
+
+The .dmg file will be in the `out` directory.

@@ -3,15 +3,20 @@ import { getApi } from '../utils/api'
 
 export function Settings() {
   const [path, setPath] = useState('')
+  const [debug, setDebug] = useState(false)
 
   useEffect(() => {
     getApi().getConfigPath().then((currentPath) => {
       setPath(currentPath)
     })
+    getApi().getConfig().then((config) => {
+      setDebug(config.debug || false)
+    })
   }, [])
 
   const handleSave = async () => {
     await getApi().setConfigPath(path)
+    await getApi().setDebug(debug)
     window.close()
   }
 
@@ -31,6 +36,21 @@ export function Settings() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             placeholder="/path/to/cheatsheet.toml"
           />
+        </div>
+
+        <div className="mb-4">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={debug}
+              onChange={e => setDebug(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            <span className="text-sm font-medium text-gray-700">Enable Debug Mode</span>
+          </label>
+          <p className="mt-1 text-sm text-gray-500">
+            If on, the application will do debug logs in $HOME/.config/cheatsheet/log.txt
+          </p>
         </div>
 
         <button

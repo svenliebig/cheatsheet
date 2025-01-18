@@ -3,6 +3,7 @@ import process from 'node:process'
 import { BrowserWindow, Menu, Tray, app, globalShortcut, ipcMain, nativeImage } from 'electron'
 import { Log } from './utils/logging'
 import { ConfigControler } from './controller/config'
+import { getAssetsDirectory } from './utils/dir'
 
 // Only include this if you're actually using it for Windows
 if (process.platform === 'win32') {
@@ -54,7 +55,7 @@ function unregister() {
 }
 
 function createTray() {
-  const imagePath = path.join(__dirname, 'assets', 'sunTemplate.png')
+  const imagePath = path.join(getAssetsDirectory(), 'sunTemplate.png')
   // Create a default icon - you should replace this with your own icon file
   const icon = nativeImage.createFromPath(imagePath)
   icon.setTemplateImage(true)
@@ -119,10 +120,21 @@ app.whenReady().then(() => {
 
   // Register for Meta (Command) key
   const ret = globalShortcut.register('Meta+Option+Z', () => {
-    if (mainWindow?.isVisible()) {
+    Log.trace('globalShortcut:Meta+Option+Z pressed')
+    const visible = mainWindow?.isVisible()
+    Log.debug(`mainWindow visible: ${visible}`)
+    if (visible) {
       mainWindow.hide()
     }
     else {
+      if (ConfigControler.localConfig.debug) {
+        Log.debug('opening dev tools')
+        mainWindow.webContents.openDevTools()
+      }
+      else if (mainWindow.webContents.isDevToolsOpened()) {
+        Log.debug('closing dev tools')
+        mainWindow.webContents.closeDevTools()
+      }
       mainWindow?.showInactive()
     }
   })

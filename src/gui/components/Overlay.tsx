@@ -1,6 +1,6 @@
+import { AnimatePresence, motion } from 'framer-motion'
 import { Command } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { getApi } from '../utils/api'
 
 interface Shortcut {
@@ -42,27 +42,19 @@ export function Overlay() {
         className="bg-black bg-opacity-90 p-4 rounded-lg"
       >
         <div className="w-full mx-auto grid grid-cols-2 gap-4">
-          {Object.entries(config).map(([key, section]) => (
+          {Object.entries(config)?.map(([key, section]) => (
             <div key={key} className="bg-white bg-opacity-10 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Command className="w-6 h-6 text-white" />
                 <h2 className="text-xl font-bold text-white">{section.name}</h2>
               </div>
               <div className="space-y-3">
-                {section.shortcuts.map((shortcut, index) => (
-                  <div key={index} className="flex justify-between text-white">
-                    <span>{shortcut.name}</span>
-                    <div className="flex gap-2">
-                      {shortcut.cmd.map((key, keyIndex) => (
-                        <kbd
-                          key={keyIndex}
-                          className="px-2 py-1 bg-white bg-opacity-20 rounded text-sm"
-                        >
-                          {key}
-                        </kbd>
-                      ))}
-                    </div>
-                  </div>
+                {section.shortcuts?.map((shortcut, index) => (
+                  <ShortcutC
+                    key={index}
+                    name={shortcut.name}
+                    cmd={shortcut.cmd}
+                  />
                 ))}
               </div>
             </div>
@@ -70,5 +62,28 @@ export function Overlay() {
         </div>
       </motion.div>
     </AnimatePresence>
+  )
+}
+
+type ShortcutProps = {
+  name: string
+  cmd: string[]
+}
+
+function ShortcutC({ name, cmd }: ShortcutProps) {
+  return (
+    <div className="flex justify-between text-white">
+      <span>{name}</span>
+      <div className="flex gap-2">
+        {cmd.map((key, keyIndex) => (
+          <kbd
+            key={keyIndex}
+            className="px-2 py-1 bg-white bg-opacity-20 rounded text-sm"
+          >
+            {key}
+          </kbd>
+        ))}
+      </div>
+    </div>
   )
 }
