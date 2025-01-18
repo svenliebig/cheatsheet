@@ -1,13 +1,11 @@
-import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { BrowserWindow, IpcMain } from 'electron'
 import type { Api } from '../types/shared'
-import { CONFIG_UPDATED, GET_CONFIG, GET_CONFIG_PATH, SET_CHEATSHEET_PATH, SET_DEBUG } from '../types/shared'
+import { CONFIG_UPDATED, GET_CHEATSHEET_PATH, GET_CONFIG, SET_CHEATSHEET_PATH, SET_DEBUG } from '../types/shared'
 import { Cheatsheet } from '../utils/cheatsheet'
+import { Config } from '../utils/config'
 import { getConfigurationDirectory } from '../utils/dir'
 import { Log } from '../utils/logging'
-
-const configPath = join(getConfigurationDirectory(), 'config.json')
 
 export const ConfigControler = {
   config: { path: join(getConfigurationDirectory(), 'cheatsheet.toml'), debug: false },
@@ -23,16 +21,16 @@ export const ConfigControler = {
       return { ...ConfigControler.cheatsheet }
     })
 
-    ipc.handle(GET_CONFIG_PATH, async () => {
-      Log.trace(`ConfigController.${GET_CONFIG_PATH}`)
-      return configPath
+    ipc.handle(GET_CHEATSHEET_PATH, async () => {
+      Log.trace(`ConfigController.${GET_CHEATSHEET_PATH}`)
+      return ConfigControler.config.path
     })
 
     ipc.handle(SET_CHEATSHEET_PATH, async (_event, path: string) => {
       Log.trace(`ConfigController.${SET_CHEATSHEET_PATH}: ${path}`)
 
       ConfigControler.config.path = path
-      writeFileSync(configPath, JSON.stringify(ConfigControler.config))
+      Config.write(ConfigControler.config)
 
       ConfigControler.cheatsheet = Cheatsheet.load(path)
       Cheatsheet.watch(ConfigControler.config.path, onCheatsheetUpdateWin)
@@ -43,12 +41,12 @@ export const ConfigControler = {
     ipc.handle(SET_DEBUG, async (_event, debug: boolean) => {
       Log.trace(`ConfigController.${SET_DEBUG}: ${debug}`)
       ConfigControler.config.debug = debug
-      writeFileSync(configPath, JSON.stringify(ConfigControler.config))
+      Config.write(ConfigControler.config)
     })
 
     // Try to load saved path
     try {
-      ConfigControler.config = JSON.parse(readFileSync(configPath, 'utf-8'))
+      ConfigControler.config = Config.read()
     }
     catch {
       Log.info('No saved config path found, using default')

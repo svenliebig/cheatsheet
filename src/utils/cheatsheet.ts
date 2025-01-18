@@ -9,8 +9,8 @@ import { Log } from './logging'
 let configWatcher: FSWatcher
 
 export const Cheatsheet = {
-  load: (path: string) => {
-    Log.trace(`loadConfig: ${path}`)
+  load: (path: string): Record<string, any> | undefined => {
+    Log.trace(`Cheatsheet.load: ${path}`)
 
     try {
       return toml.parse(readFileSync(path, 'utf-8'))
@@ -18,9 +18,10 @@ export const Cheatsheet = {
     catch (error) {
       if (isENOENT(error)) {
         const dftConfigPath = join(getAssetsDirectory(), 'cheatsheet.toml')
-        Log.info(`config file does not exist in:\n  ${path}\ncopying from default:\n  ${dftConfigPath}`)
+        Log.info(`cheatsheet file does not exist in:\n  ${path}\ncopying from default:\n  ${dftConfigPath}`)
         try {
           copyFileSync(dftConfigPath, path)
+          return Cheatsheet.load(path)
         }
         catch (error) {
           Log.error('Error copying default config file:', error)
@@ -30,6 +31,8 @@ export const Cheatsheet = {
         Log.error('Error reading config:', error)
       }
     }
+
+    return {}
   },
   watch(path: string, onChange: (sheet: Record<string, any>) => void) {
     Log.trace(`Cheatsheet.watch: ${path}`)

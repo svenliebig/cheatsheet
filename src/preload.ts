@@ -3,7 +3,7 @@
 
 import { contextBridge, ipcRenderer } from 'electron'
 import type { Api } from './types/shared'
-import { CONFIG_UPDATED, GET_CONFIG, GET_CONFIG_PATH, SET_CHEATSHEET_PATH, SET_DEBUG } from './types/shared'
+import { CONFIG_UPDATED, GET_CHEATSHEET_PATH, GET_CONFIG, SET_CHEATSHEET_PATH, SET_DEBUG } from './types/shared'
 
 export const api: Api = {
   getConfig: async () => {
@@ -14,7 +14,7 @@ export const api: Api = {
     ipcRenderer.on(CONFIG_UPDATED, (_event, value) => callback(value))
   },
   getConfigPath: async () => {
-    return await ipcRenderer.invoke(GET_CONFIG_PATH)
+    return await ipcRenderer.invoke(GET_CHEATSHEET_PATH)
   },
   setConfigPath: async (path: string) => {
     await ipcRenderer.invoke(SET_CHEATSHEET_PATH, path)
