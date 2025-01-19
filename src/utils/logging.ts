@@ -28,7 +28,7 @@ class Logger {
   }
 
   private log(level: LogLevel, message?: any, ...optionalParams: any[]) {
-    if (!ConfigControler.config.debug) {
+    if (!ConfigControler.config.debug && level !== LogLevel.Error) {
       return
     }
 
